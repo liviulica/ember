@@ -77,4 +77,21 @@ final class MessagesTests: XCTestCase {
         let refused = LinkAck(commandID: id, result: .refused(reason: "Lid mode is off"))
         XCTAssertEqual(try roundTrip(refused), refused)
     }
+
+    func testUnknownValuesFromANewerMacStillDecode() throws {
+        let json = #"""
+        {"mode":"warp","paused":false,"internet":{"kind":"satellite"},"thermal":"molten","memory":"swapping",
+         "agents":[{"id":"a","project":"p","state":"thinking","since":0}],"emberVersion":"9.0.0","sentAt":0}
+        """#
+        let status = try LinkCoding.decoder().decode(LinkStatus.self, from: Data(json.utf8))
+        XCTAssertEqual(status.mode, .unknown)
+        XCTAssertEqual(status.internet.kind, .unknown)
+        XCTAssertEqual(status.thermal, .critical)
+        XCTAssertEqual(status.memory, .critical)
+        XCTAssertEqual(status.agents.first?.state, .working)
+        let event = try LinkCoding.decoder().decode(LinkEvent.self, from: Data(#"{"id":"6F9619FF-8B86-D011-B42D-00C04FC964FF","kind":"meteor","title":"t","body":"b","sentAt":0}"#.utf8))
+        XCTAssertEqual(event.kind, .notice)
+        let activity = try LinkCoding.decoder().decode(LinkActivityState.self, from: Data(#"{"mode":"lid","paused":false,"status":"dreaming"}"#.utf8))
+        XCTAssertEqual(activity.status, .working)
+    }
 }

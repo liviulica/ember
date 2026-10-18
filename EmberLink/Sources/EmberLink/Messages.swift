@@ -5,12 +5,29 @@ import Foundation
 // travel sealed (Sealer); only LinkActivityState is plaintext, because the
 // Live Activity on the lock screen cannot decrypt.
 
-public enum LinkMode: String, Codable, Equatable, Sendable {
-    case off, screen, lid
+/// A string enum that decodes a value it does not know to `fallback`
+/// instead of failing. Ember updates through Sparkle and the phone through
+/// the App Store, so a newer Mac can send a case an older phone lacks; one
+/// unknown value must not make the whole status unreadable.
+public protocol LinkTolerantEnum: RawRepresentable, Codable where RawValue == String {
+    static var fallback: Self { get }
 }
 
-public enum LinkInternetKind: String, Codable, Equatable, Sendable {
+public extension LinkTolerantEnum {
+    init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        self = Self(rawValue: raw) ?? Self.fallback
+    }
+}
+
+public enum LinkMode: String, LinkTolerantEnum, Equatable, Sendable {
+    case off, screen, lid, unknown
+    public static let fallback = LinkMode.unknown
+}
+
+public enum LinkInternetKind: String, LinkTolerantEnum, Equatable, Sendable {
     case wifi, hotspot, ethernet, none, unknown
+    public static let fallback = LinkInternetKind.unknown
 }
 
 public struct LinkInternet: Codable, Equatable, Sendable {
@@ -34,8 +51,10 @@ public struct LinkBattery: Codable, Equatable, Sendable {
     }
 }
 
-public enum LinkThermal: String, Codable, Equatable, Sendable {
+public enum LinkThermal: String, LinkTolerantEnum, Equatable, Sendable {
     case normal, warm, hot, critical
+    /// Unknown reads as the worst, so the phone warns rather than reassures.
+    public static let fallback = LinkThermal.critical
 
     public init(_ state: ProcessInfo.ThermalState) {
         switch state {
@@ -48,12 +67,14 @@ public enum LinkThermal: String, Codable, Equatable, Sendable {
     }
 }
 
-public enum LinkMemory: String, Codable, Equatable, Sendable {
+public enum LinkMemory: String, LinkTolerantEnum, Equatable, Sendable {
     case normal, tight, critical
+    public static let fallback = LinkMemory.critical
 }
 
-public enum LinkAgentState: String, Codable, Equatable, Sendable {
+public enum LinkAgentState: String, LinkTolerantEnum, Equatable, Sendable {
     case working, waiting, done
+    public static let fallback = LinkAgentState.working
 }
 
 /// One coding agent session (Claude Code today). Never carries prompts, file
@@ -119,8 +140,9 @@ public struct LinkStatus: Codable, Equatable, Sendable {
     }
 }
 
-public enum LinkEventKind: String, Codable, Equatable, Sendable {
+public enum LinkEventKind: String, LinkTolerantEnum, Equatable, Sendable {
     case endsSoon, ended, battery, thermal, agentWaiting, restoreWarning, notice
+    public static let fallback = LinkEventKind.notice
 }
 
 /// A notification for the phone, with the text the Mac wrote.
@@ -227,8 +249,9 @@ public struct LinkAck: Codable, Equatable, Sendable {
     }
 }
 
-public enum LinkActivityStatus: String, Codable, Equatable, Sendable {
+public enum LinkActivityStatus: String, LinkTolerantEnum, Equatable, Sendable, Hashable {
     case working, offline, quiet, ended
+    public static let fallback = LinkActivityStatus.working
 }
 
 /// The Live Activity's content, sent in plaintext through the relay. Times
