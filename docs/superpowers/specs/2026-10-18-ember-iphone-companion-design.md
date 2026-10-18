@@ -172,9 +172,13 @@ possibly a small relay. Research changed that:
   launching at all.
 
 Once a relay is needed, routing everything through it is simpler and
-reliable. Cost: Cloudflare's free plan covers roughly a few hundred active
-users a day; past that it is the $5/month Workers Paid plan. The owner chose
-the relay over "iCloud only" on 2026-10-18.
+reliable. Cost: past Cloudflare's free plan it is the $5/month Workers Paid
+plan. The owner chose the relay over "iCloud only" on 2026-10-18. (Revised
+after plan 1: the free plan's tightest limit is Durable Object row writes,
+about three per status message, so it covers roughly 50 to 100 people with an
+8-hour session a day, not "a few hundred" as first estimated; the paid plan's
+included writes cover about a thousand. Fewer writes per message is possible
+later.)
 
 ### 1. The protocol package: `EmberLink` (Swift)
 
