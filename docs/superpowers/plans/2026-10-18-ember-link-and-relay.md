@@ -223,3 +223,9 @@
 
 - Milestone 0 spike, once the owner has: created the APNs key, signed in Xcode, run `wrangler login`. Deploy `ember-relay` to a `workers.dev` address with the key as a secret, push one alert and one Live Activity start from inside the Durable Object to a development build. If the Durable Object cannot reach APNs, switch `HttpApnsSender` to send from the Worker (the object calls the Worker through a service binding), then to FCM.
 - Plan 2 (Ember's Mac side) and plan 3 (iPhone app), written when this plan's PRs are up.
+
+## Carried into plans 2 and 3 (from the reviews of plan 1)
+
+- Plan 2 (Ember): call `GET /v1/groups/:g/devices` on every connect and delete the keys of removed phones; send `sessionOn: false` (or `ending`) on every end; wait for the relay's `{"type":"relay","event":"received","id"}` (up to 2 s) before letting the Mac sleep after "ended"; keep the command dedupe store at least 20 minutes across restarts; batch status sends so a Mac with several phones stays under 120 messages a minute; keep the socket alive and detect a half-open one (ping or heartbeat).
+- Plan 3 (iPhone): treat 410 `removed` as "unpaired on the other side"; read acks from the command response, not the socket; let the phone mute the relay's own "went quiet" and "back online" alerts (a mute list in `PUT .../push`, or the Notification Service Extension filtering entitlement); dedupe events and ignore stale statuses (`sentAt`).
+- Relay, later: rebuild Live Activity state from the allowed fields and reject unknown phases; refuse to start without the APNs key in production; CI for `relay/`; re-pin `Vendor/Ember` to `main` after this PR merges; fewer row writes per message.
