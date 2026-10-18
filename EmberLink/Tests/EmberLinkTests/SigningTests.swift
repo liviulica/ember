@@ -34,6 +34,14 @@ final class SigningTests: XCTestCase {
         XCTAssertFalse(try verifies(now + 300_001))
     }
 
+    func testVerifyRejectsExtremeTimestampsWithoutTrapping() throws {
+        let key = P256.Signing.PrivateKey()
+        for ts in [Int64.min, Int64.max] {
+            let header = "EmberSig device=d_1,ts=\(ts),sig=" + Base64URL.encode(Data(repeating: 1, count: 64))
+            XCTAssertFalse(RequestSigner.verify(header: header, publicKeyX963: key.publicKey.x963Representation, method: "GET", path: "/", body: Data(), nowMs: now))
+        }
+    }
+
     func testVerifyRejectsOtherBodyAndPath() throws {
         let key = P256.Signing.PrivateKey()
         let header = try RequestSigner.authorization(device: "d_1", key: key, method: "POST", path: "/v1/x", timestampMs: now, body: body)

@@ -38,7 +38,8 @@ public enum RequestSigner {
 
     public static func verify(header: String, publicKeyX963: Data, method: String, path: String, body: Data, nowMs: Int64) -> Bool {
         guard let parts = parse(header),
-              abs(nowMs - parts.ts) <= window,
+              case let (skew, overflow) = nowMs.subtractingReportingOverflow(parts.ts), !overflow,
+              (-window...window).contains(skew),
               let key = try? P256.Signing.PublicKey(x963Representation: publicKeyX963),
               let signature = try? P256.Signing.ECDSASignature(rawRepresentation: parts.sig)
         else { return false }
