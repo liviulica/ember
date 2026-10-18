@@ -309,7 +309,7 @@ pairing and the sealed messages.
 
 Owner's choice (2026-10-18): `EmberLink` and the Mac side in this repo (public, MIT, since Ember has to
 speak the protocol anyway); the iPhone app and the relay in a new private
-repo `liviulica/ember-ios`, which depends on `EmberLink` by git tag.
+repo `liviulica/ember-mobile`, which depends on `EmberLink` by git tag.
 
 ## Owner actions needed (not code)
 

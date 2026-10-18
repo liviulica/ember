@@ -4,7 +4,7 @@
 
 **Goal:** The shared message format (`EmberLink`, Swift) and the relay that carries it between a Mac and its phones (`ember-relay`, Cloudflare Worker + Durable Object), both fully tested without any Apple or Cloudflare account.
 
-**Architecture:** `EmberLink` is a standalone SwiftPM package nested in the Ember repo (`EmberLink/`), with no dependencies beyond Foundation and CryptoKit. The relay lives in the new private repo `liviulica/ember-ios` (`relay/`), which pins the Ember repo as a git submodule (`Vendor/Ember`) so both sides test against the same vectors. One Durable Object per pairing group routes sealed envelopes over hibernating WebSockets and sends APNs pushes through an `ApnsSender` interface (faked in tests; the real sender is proven by the milestone 0 spike).
+**Architecture:** `EmberLink` is a standalone SwiftPM package nested in the Ember repo (`EmberLink/`), with no dependencies beyond Foundation and CryptoKit. The relay lives in the new private repo `liviulica/ember-mobile` (`relay/`), which pins the Ember repo as a git submodule (`Vendor/Ember`) so both sides test against the same vectors. One Durable Object per pairing group routes sealed envelopes over hibernating WebSockets and sends APNs pushes through an `ApnsSender` interface (faked in tests; the real sender is proven by the milestone 0 spike).
 
 **Tech Stack:** Swift 6.2, CryptoKit (ChaChaPoly, P256.Signing), XCTest; TypeScript, wrangler 4.147.0, vitest 4.1.11, @cloudflare/vitest-pool-workers 0.22.0, @cloudflare/workers-types 5.20261003.1, typescript 7.0.2 (all exact, none newer than two weeks on 2026-10-18).
 
@@ -113,11 +113,11 @@
 - [ ] **Step 4: Run** the package tests. Expected: pass.
 - [ ] **Step 5: Commit** `feat(link): pairing code`. Push the branch `iphone-companion-design` to origin (a feature branch, not `main`), so the submodule in Task 5 can fetch it.
 
-### Task 5: The ember-ios repo, the relay skeleton, groups, tickets and devices
+### Task 5: The ember-mobile repo, the relay skeleton, groups, tickets and devices
 
-**Files (repo `~/Coding/ember-ios`, private `liviulica/ember-ios`):**
+**Files (repo `~/Coding/ember-mobile`, private `liviulica/ember-mobile`):**
 - Create: `README.md`, `.gitignore`, `Vendor/Ember` (submodule of `https://github.com/liviulica/ember`, at the Task 4 commit), `relay/package.json`, `relay/package-lock.json`, `relay/wrangler.jsonc`, `relay/tsconfig.json`, `relay/vitest.config.ts`, `relay/src/index.ts`, `relay/src/auth.ts`, `relay/src/group.ts`, `relay/src/ids.ts`, `relay/test/auth.test.ts`, `relay/test/pairing.test.ts`, `relay/test/helpers.ts`
-- Register in atelier: `node ~/Coding/atelier/scripts/work/work.mjs register ~/Coding/ember-ios --description="Ember for iPhone (SwiftUI) and its Cloudflare relay"` and `~/Coding/atelier/projects/ember-ios.md`.
+- Register in atelier: `node ~/Coding/atelier/scripts/work/work.mjs register ~/Coding/ember-mobile --description="Ember for iPhone (SwiftUI) and its Cloudflare relay"` and `~/Coding/atelier/projects/ember-mobile.md`.
 
 **Interfaces:**
 - Consumes: `EmberLink/TestVectors/signing.json` (read in tests from `../Vendor/Ember/EmberLink/TestVectors/signing.json`), the header and canonical rules of Task 3, `PairingCode.ticketHash` rule of Task 4.
@@ -132,7 +132,7 @@
     - `DELETE /v1/groups/:g/devices/:d` (any device of the group; a phone may remove itself or another phone, never the Mac; the Mac may remove any phone) → 204; sets `disabled = 1` and closes that device's sockets.
   - `wrangler.jsonc`: name `ember-relay`, `main: src/index.ts`, `compatibility_date: "2026-10-01"`, Durable Object binding `GROUP` → `EmberGroup`, migration `v1` with `new_sqlite_classes: ["EmberGroup"]`, vars `APNS_TOPIC: "app.chargingpixels.ember.ios"`, `APNS_TEAM_ID: "4UA742BB8G"`; secrets (not committed) `APNS_KEY_P8`, `APNS_KEY_ID`.
 
-- [ ] **Step 1: Create the repo** (`gh repo create liviulica/ember-ios --private`), set the repo-local git identity, add the submodule, scaffold `relay/` with the exact versions from the header, `npm install`.
+- [ ] **Step 1: Create the repo** (`gh repo create liviulica/ember-mobile --private`), set the repo-local git identity, add the submodule, scaffold `relay/` with the exact versions from the header, `npm install`.
 - [ ] **Step 2: Write the failing tests:** `auth.test.ts`: `verifies the shared vector` (true at `nowMs = timestampMs`), `rejects at 300001 ms skew`, `accepts at 300000 ms skew`, `rejects a changed body`, `canonical matches the vector`. `pairing.test.ts`: `creates a group`; `redeems a ticket once` (second redemption 403); `rejects an expired ticket` (advance time by 600_001 ms through a `now()` the object reads from an injectable clock in tests); `rejects unsigned and wrongly signed requests` (401); `a phone cannot remove the Mac` (403); `a removed phone is rejected afterwards` (its next signed request 401) **and its open socket is closed** (Review Focus 4; open the socket first using Task 6's route, so write this case as `it.todo` now and fill it in Task 6).
 - [ ] **Step 3: Run** `npm test` in `relay/`. Expected: failures (routes missing).
 - [ ] **Step 4: Implement** `index.ts`, `auth.ts`, `ids.ts`, `group.ts` for these routes.
@@ -217,7 +217,7 @@
 - [ ] **Step 2: Run** `npm test -- quiet limits`. Expected: fail.
 - [ ] **Step 3: Implement** (use the injectable clock from Task 5; trigger alarms with `runDurableObjectAlarm` from `cloudflare:test`).
 - [ ] **Step 4: Run** `npm test` and `npx tsc --noEmit`. Expected: pass.
-- [ ] **Step 5: Commit** `feat(relay): went-quiet and back-online alerts, limits, cleanup`. Open a PR in each repo (Ember: the spec, the plan and EmberLink; ember-ios: the relay), with the self-review and a Codex review, and report to the owner. Do not merge.
+- [ ] **Step 5: Commit** `feat(relay): went-quiet and back-online alerts, limits, cleanup`. Open a PR in each repo (Ember: the spec, the plan and EmberLink; ember-mobile: the relay), with the self-review and a Codex review, and report to the owner. Do not merge.
 
 ## After this plan
 
