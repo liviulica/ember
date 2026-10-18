@@ -38,6 +38,9 @@ jobs:
         run: scripts/test-fast.sh
         env:
           NSUnbufferedIO: "YES"
+      - name: EmberLink tests
+        # The protocol package shared with Ember for iPhone (EmberLink/).
+        run: swift test --package-path EmberLink -Xswiftc -warnings-as-errors
 
   smoke:
     name: End-to-end smoke test
