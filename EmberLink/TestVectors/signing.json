@@ -1,0 +1,11 @@
+{
+  "authorization" : "EmberSig device=d_vector,ts=1792300000000,sig=htf_NySW4pJ0QhABYnAJXWo6-ZSf79XrzJV0mRvbnj5WRNmvEgeN3CQiDJs0gqTd97pzdf8b2_LMBdyRqXy09Q",
+  "body" : "{\"x\":1}",
+  "canonical" : "POST\n/v1/groups/g_vector/commands\n1792300000000\n5041bf1f713df204784353e82f6a4a535931cb64f1f4b4a5aeaffcb720918b22",
+  "device" : "d_vector",
+  "method" : "POST",
+  "path" : "/v1/groups/g_vector/commands",
+  "privateKeyRawBase64" : "1ClxnLmbyQGlcc96FMYc2YnAUGfK3QcwTCcNi/qtQUk=",
+  "publicKeyX963Base64" : "BPShvOxdrbOsRgKKDMrwWng92TCRtyDnIc7jD6y0wDyLzGlTmI5q4NbiJdQLsAtessb091NM1yV/HLwEF4xczDU=",
+  "timestampMs" : 1792300000000
+}
